@@ -1,6 +1,9 @@
 import random
-import levels
+from level_builder import update
+import classes as cls
 import matplotlib.pyplot as plt
+
+frodo = cls.Player()
 
 def log_stats(filename: str, stats: dict):
     """

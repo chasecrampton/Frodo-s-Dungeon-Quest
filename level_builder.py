@@ -1,10 +1,24 @@
 CHAR_CODES = {
-    "-": "blank",
-    "+": "obstacle",
-    "M": "monster",
-    "@": "amulet",
-    "!": "end",
+    "-": {
+        "type": "blank",
+        "health": ""
+    },
+    "+": {
+        "type": "obstacle"
+    },
+    "M": {
+        "type": "monster"
+    },
+    "!": {
+        "type": "end"
+    },
+    "@": {
+        "type":"player"
+    }
 }
+
+class Level:
+    
 
 def read_level(type: str, num: int):
     """
@@ -17,10 +31,11 @@ def read_level(type: str, num: int):
 
     with open(type, "r") as file:
         for line in file:
+            row = []
             line = line.split(" ")
             for space in line:
                 pos_data = {
-
+                    
                 }
 
                 """
@@ -33,14 +48,23 @@ def read_level(type: str, num: int):
 
                 pos_data["type"] = CHAR_CODES[space]
 
-                # TODO: check each character and create  
-
+                row.append(pos_data)
         file.close()
 
     return level
 
 def display_level():
+    monster_positions = current_level.get_monster_positions()
+    for monster_position in monster_positions {
+        
+    }
+    current_level.get_player_position()
+    if (current_level.amulet_is_taken()) {
+        amulet_location = " "
+    }
     pass
+    # TODO: when printing, use blank space " " instead of "-"
 
 def update():
+
     pass
