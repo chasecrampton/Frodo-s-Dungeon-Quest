@@ -1,5 +1,5 @@
 import random
-from level_builder import update
+from level import Level
 import classes as cls
 import matplotlib.pyplot as plt
 

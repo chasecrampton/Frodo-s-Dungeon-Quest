@@ -1,26 +1,5 @@
-class Dog:
-    # Class attribute (shared by all dogs)
-    species = "Canis familiaris"
-
-    # Constructor method
-    def __init__(self, name, age):
-        # Instance attributes (unique to each dog)
-        self.name = name
-        self.age = age
-
-    # Instance method
-    def bark(self):
-        return f"{self.name} says woof!"
-    
-# Creating objects (instances) of the Dog class
-dog1 = Dog("Buddy", 3)
-dog2 = Dog("Bella", 5)
-
-# Accessing attributes and calling methods
-print(dog1.name)       # Output: Buddy
-print(dog2.bark())     # Output: Bella says woof!
-print(dog1.species)
-
+import random
+import numpy as np
 class Colors:
     green = "\033[32m"
     yellow = "\033[33m"
@@ -69,10 +48,24 @@ class Player:
     inventory = []
     damage = 10
     weapon = Weapon('base')
+    position = np.array([0,0])
 
     def __init__(self) -> None:
         pass
+    def move(self, move_direction, level_map):
+        new_pos = self.position + np.array(move_direction)
+        new_r, new_c = int(new_pos[0]), int(new_pos[1])
 
+        if new_r < 0 or new_r >= len(level_map) or new_c < 0 or new_c >= len(level_map[0]):
+            return False # outside map boundary
+
+        target_tile = level_map[new_r][new_c]
+        if isinstance(target_tile, (Obstacle)): # doesn't work if is a wall
+            return False
+        self.position = new_pos
+        return True
+
+        return False
     def add_inventory(self, item):
         self.inventory.append(item)
 
@@ -105,7 +98,8 @@ class Monster:
     display = "M"
     health = 10
     color = None
-
+    position = np.array([0,0])
+    type = "fairy" # delete this (and getMove and corresponding move(self) if only 1 monster type)
     def update_health(self, h):
         self.health += h
 
@@ -115,6 +109,35 @@ class Monster:
             self.color = Colors.yellow
         else:
             self.color = Colors.red
+    def move(self, player_position, level_map):
+        move_direction = self.getMove(player_position)
+        new_pos = self.position + np.array(move_direction)
+        new_r, new_c = int(new_pos[0]), int(new_pos[1])
+
+        if new_r < 0 or new_r >= len(level_map) or new_c < 0 or new_c >= len(level_map[0]):
+            return False # outside map boundary
+
+        target_tile = level_map[new_r][new_c]
+        if isinstance(target_tile, (Obstacle)): # doesn't work if is a wall
+            return False
+        self.position = new_pos
+        return True
+
+        
+    def getMove(self, player_position = [0,0]):
+        match self.type:
+            case "fairy": # fairy = random movement
+                return random.choice([
+                    np.array([-1, 0]),
+                    np.array([0, -1]),
+                    np.array([1, 0]),
+                    np.array([0, 1]),]) # does inclusive random integer
+            case "goblin":
+                a = player_position - self.position
+                if abs(a[0]) >= abs(a[1]):
+                    return np.array([int(np.sign(a[0])), 0]) # towards by row
+                return np.array([0, int(np.sign(a[1]))]) # towards by column
+
 
 class Inventory:
     HealthPacks = 0
@@ -124,5 +147,12 @@ class Inventory:
     def add_staff(self, staff):
         self.Staffs.append(staff)
 
+class Floor:
+    display = (if (hasEffect) : "#" else " ")
+    color = None
+    hasEffect = False
 
+    def spelled(self):
+        hasEffect = True
+        
 
