@@ -1,5 +1,12 @@
 import classes as cls
 import numpy as np
+from pathlib import Path
+
+def wasd_to_array(key):
+    """AI-assisted. Converts a WASD key to a row and column offset."""
+    directions = {'w': (-1, 0), 'a': (0, -1), 's': (1, 0), 'd': (0, 1)}
+    if key in directions:
+        return np.array(directions[key])
 
 
 class Level:
@@ -14,10 +21,14 @@ class Level:
     player: cls.Player
     monsters: list[cls.Monster]
     
-    def __init__(self, level_file: str, player: cls.Player):
-        self.map = self.read_level(level_file)
+    def __init__(self, level_file: str | Path, player: cls.Player):
+        """Team-written.
+
+        Initializes the level class.
+        """
         self.player = player
-        monsters = []
+        self.monsters = []
+        self.map = self.read_level(str(level_file))
 
     def read_level(self, filepath: str):
         """
@@ -31,19 +42,20 @@ class Level:
         with open(filepath, "r") as file:
             for r, line in enumerate(file):
                 row = []
-                line = line.strip()
-                line = line.split(" ")
+                line = line.split()
                 for c, space in enumerate(line): # tile_type? then we access the other more specific stuff later
                     if space == cls.Player.display:
                         # don't create another player object
                         self.player.position = np.array([r, c])
-                        row.append(self.player)
+                        row.append(cls.Floor())
                         continue
                     if space == cls.Monster.display:
                         monster = cls.Monster()
                         monster.position = np.array([r,c])
                         monster.type = "fairy"
                         self.monsters.append(monster)
+                        row.append(cls.Floor())
+                        continue
                     entity = self.CHAR_CLASSES[space]()
                     row.append(entity)
 
@@ -52,41 +64,36 @@ class Level:
             file.close()
         return map
 
+    def visible_entities(self):
+        """AI-assisted. Returns the topmost entity at each occupied position."""
+        return {tuple(entity.position): entity for entity in [*self.monsters, self.player]}
+
+    def map_text(self):
+        """AI-assisted. Draws moving entities over the character map."""
+        rows = [[tile.display for tile in row] for row in self.map]
+        for (row, col), entity in self.visible_entities().items():
+            rows[row][col] = entity.display
+        return "\n".join(" ".join(row) for row in rows)
+
     def display_level(self):
-        for row in self.map:
-            for col in row:
-                print(col.display_character, end = "") # with color
-            print() # new line for each row
-            
-        # TODO: when printing, use blank space " " instead of "-"
+        """AI-assisted. Prints the character map in the terminal."""
+        print(self.map_text())
 
-    def update(self): # 
-        '''   UPDATE   '''
-        input = self.player.get_input() # gets input (wasd, inventory, etc.)
-        if not isValidInput(input): # checks against a list of inputs
-            # TODO: print tell player "invalid input" and "h for help"
-            return # doesn't update if invalid input
-        
-        if input == "h" or input == "help":
-            # TODO: make and print a help screen
-            pass
-        if input_is_movement(input) # TODO: make method input_is_movement(string) bool   check if input is wasd 
-            move_direction = wasd_to_array(input) # TODO: make method wasd_to_array(string) turns wasd to np.array [-1,0] [0,-1] [1,0] [0,1] (in [r,c] format)
-            self.change_grid(player.position, cls.Floor)
-            self.player.move(move_direction)
-            self.change_grid(self.player.position, self.player)
+    def update(self, key):
+        """AI-assisted. Advances the level after a successful player move."""
+        direction = wasd_to_array(key)
+        if direction is None or not self.player.move(direction, self.map):
+            return
 
-            for monster in self.monsters:
-                self.change_grid(monster.position, cls.Floor) # remove the "M" # TODO: make method change_grid (this is a bit complicated)
-                monster.move(self.player.position) # new monster position, depends on what type of move_towards function the monster has (can move towards player, randomly, or stay still)
-                self.change_grid(monster.position, monster) # monster.position now uses new monster position
-            
-            return # stops update because move is done
-        
-        if input == "inventory" or input == "status":
-            # display inventory, equipment, and status
-            pass
-        pass
+        for monster in self.monsters:
+            monster.move(self.player.position, self.map)
+
     def change_grid(self, position, entity):
+        """
+        Team-written.
+
+        Changes the position of an entity.
+        """
+
         row, col = position
         self.map[row][col] = entity
