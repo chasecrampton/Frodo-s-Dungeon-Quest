@@ -23,7 +23,7 @@ class Level:
     monsters: list[cls.Monster]
     
     def __init__(self, level_file: str | Path, player: cls.Player):
-        """Team-written.
+        """Team-written. Chase
 
         Initializes the level class.
         """
@@ -37,7 +37,7 @@ class Level:
 
     def read_level(self, filepath: str):
         """
-        Team-written.
+        Team-written. Chase, Jonathan
         
         Reads a level file and returns a map with objects of each
         """
@@ -101,7 +101,7 @@ class Level:
 
     def change_grid(self, position, entity):
         """
-        Team-written.
+        Team-written. Jonathan
 
         Changes the position of an entity.
         """
@@ -109,7 +109,9 @@ class Level:
         row, col = position
         self.map[row][col] = entity
     def clear_spell_effects(self):
-        """Team-written. Clears all temporary spell effects from the floor."""
+        """Team-written. Jonathan
+        
+        Clears all temporary spell effects from the floor."""
         for row in self.map:
             for tile in row:
                 if isinstance(tile, cls.Floor) and getattr(tile, 'hasEffect', False):

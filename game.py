@@ -11,7 +11,7 @@ frodo = cls.Player()
 
 def log_stats(filename: str, stats: dict):
     """
-    Team-written.
+    Team-written. Chase
 
     Writes stats to a log file at the end of each game
     """
@@ -21,7 +21,9 @@ def log_stats(filename: str, stats: dict):
         file.close()
 
 def next_level(curr_file: Path, curr_level: str, level_count:int, is_dev_mode: bool):
-    """Partially Team-written. Randomly returns the next level's path based on the previous level's difficulty"""
+    """Partially Team-written, partially AI-written. Jonathan, Chase
+    
+    Randomly returns the next level's path based on the previous level's difficulty"""
     difficulties = ["easy", "medium", "hard", "boss", "win"]
     curr_dir = curr_file.parent
     if is_dev_mode: # Dev testing is AI-written
@@ -44,7 +46,7 @@ def next_level(curr_file: Path, curr_level: str, level_count:int, is_dev_mode: b
                 return next_levels[0], next_difficulty
                 
         return curr_file, curr_level
-    else: # Standard game mode is team-written
+    else: # Standard game mode is team-written. Chase
         possible_levels = []
         directory = Path(__file__).resolve().parent / "levels"
         next_level = random.choice(["easy", "medium", "hard", "boss"])
@@ -108,20 +110,19 @@ def main():
     map_view.tag_configure("wounded", foreground="#f5cf67")
     map_view.tag_configure("critical", foreground="#ff8989")
     map_view.grid(row=0, column=0, sticky="nsew")
-    ttk.Label(dungeon, text="@ Frodo   Z Zombie   F Fairy   H Hound   B Bat   S Statue   + Wall   ? Loot   ! Exit").grid(
-        row=1, column=0, sticky="w", pady=(10, 2)
-    )
     ttk.Label(dungeon, text="WASD to move  •  Esc to quit").grid(
-        row=2, column=0, sticky="w"
+        row=1, column=0, sticky="w", pady=(10, 0)
     )
     status_label = ttk.Label(dungeon, text="Ready.", foreground="#f5cf67")
-    status_label.grid(row=3, column=0, sticky="w", pady=(5, 0))
+    status_label.grid(row=2, column=0, sticky="w", pady=(5, 0))
 
     pending_spell = None
     dev_mode_var = tk.BooleanVar(value=False)
 
     def skip_level():
-        """Team-written. Instantly skips to the next level (Dev mode only)."""
+        """Team-written. Jonathan
+        
+        Instantly skips to the next level (Dev mode only)."""
         nonlocal level, level_file, curr_level, level_count
         if not dev_mode_var.get():
             return
@@ -138,7 +139,8 @@ def main():
         refresh()
 
     def toggle_dev_mode():
-        """Team-written. Enables or disables the dev mode based on the checkbox.
+        """Team-written. Jonathan
+        Enables or disables the dev mode based on the checkbox.
         Adds a skip button and infinite health"""
         if dev_mode_var.get():
             skip_button.configure(state="normal")
@@ -155,7 +157,7 @@ def main():
         variable=dev_mode_var,
         command=toggle_dev_mode
     )
-    dev_mode_cb.grid(row=4, column=0, sticky="w", pady=(5, 0))
+    dev_mode_cb.grid(row=3, column=0, sticky="w", pady=(5, 0))
 
     skip_button = ttk.Button(
         dungeon, 
@@ -163,10 +165,11 @@ def main():
         command=skip_level, 
         state="disabled"  # Starts disabled until Dev Mode is checked
     )
-    skip_button.grid(row=5, column=0, sticky="w", pady=(5, 0))
+    skip_button.grid(row=4, column=0, sticky="w", pady=(5, 0))
 
     def delete_spell_ui(spell_name):
-        """Team-written. Deletes a spell to make room for new ones."""
+        """AI-written. 
+        Deletes a spell to make room for new ones."""
         if len(frodo.spell_slots) <= 1:
             status_label.configure(text="Cannot delete your only spell!")
             return
@@ -183,7 +186,7 @@ def main():
 
     # Define what happens when an inventory button is clicked
     def use_item_ui(item_name):
-        """Team-written. Uses clicked item and refreshes UI."""
+        """AI-written. Uses clicked item and refreshes UI."""
         if frodo.inventory.get_count(item_name) > 0: # if number of item exists
             result = frodo.use_item(item_name) # use the item, returns False or a string describing what the item did
             
@@ -199,11 +202,10 @@ def main():
 
     # Pass the function to the StatsPanel
     stats = StatsPanel(root, item_callback=use_item_ui, delete_spell_callback=delete_spell_ui)
-    stats.grid(row=0, column=1, sticky="new", padx=(0, 16), pady=16)
-    stats.grid(row=0, column=1, sticky="new", padx=(0, 16), pady=16)
+    stats.grid(row=0, column=1, sticky="nsew", padx=(0, 16), pady=16)
 
     def queue_spell(event):
-        """Team-written. Stages a spell slot (1-4)."""
+        """AI-written. Stages a spell slot (1-4)."""
         nonlocal pending_spell
         slot_number = int(event.char) - 1\
         
@@ -263,6 +265,7 @@ def main():
         # check death
         if frodo.health <= 0:
             save_game_log("Died")
+            stats.refresh(frodo, level_file.stem, level_count)
 
             map_view.configure(state="normal")
             map_view.delete("1.0", "end")

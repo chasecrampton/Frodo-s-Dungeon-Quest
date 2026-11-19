@@ -161,7 +161,7 @@ class Weapon:
         return hit_monsters, affected_tiles
 
     def update(self, staff: str):
-        """Team-written.
+        """Team-written. Jonathan
         
         Updates the currently equipped staff to a different one.
         """
@@ -329,7 +329,7 @@ class Player:
         self.action_log: list[str] = []
 
     def move(self, move_direction: np.ndarray, level_map: list[list[Any]], monsters: list["Monster"]) -> bool:
-        """Team-written.
+        """Team-written. Jonathan
         
         Moves the player in a direction. Returns True or False based on if the player was able to move.
         """
@@ -359,19 +359,19 @@ class Player:
         return True
 
     def add_to_inventory(self, item: str):
-        """Team-written.
+        """Team-written. Jonathan
         
         Adds item to players inventory"""
         self.inventory.add_item(item)
 
     def use_item(self, item: str):
-        """Team-written.
+        """Team-written. Winfield Fleming
         
         If the player has the item in the inventory, use it. Returns wehter the item was used or not.
         """
         return self.inventory.use_item(item, self)
     def change_health(self, x: int):
-        """Team-written.
+        """Team-written. Jonathan
         
         Updates players health
         """
@@ -387,7 +387,7 @@ class Player:
         return Colors.green
 
     def equip_weapon(self, weapon: Weapon):
-        """Team-written.
+        """Team-written. Jonathan
         
         Equips a weapon
         """
@@ -410,7 +410,7 @@ class Player:
         return self.attack(direction, level_map, monsters)
 
     def p(self):
-        """Team-written.
+        """Team-written. Chase
         
         Prints the players health."""
 
@@ -419,6 +419,7 @@ class Player:
 class Monster:
     map_char = "M"
     health = 30
+    max_health = 30
     position = np.array([0,0])
     type = "fairy" # delete this (and getMove and corresponding move(self) if only 1 monster type)
     damage = 10
@@ -452,51 +453,48 @@ class Monster:
     ]
 
     def update_health(self, h: int):
-        """Team-written.
+        """Team-written. Winfield Fleming
         
         Updates the monster's health."""
 
         self.health += h
     def chooseRandomMonster(self):
-        """Team-written. Randomly selects a type and configures its attributes."""
-        choices = ["fairy", "goblin", "zombie", "stationary", "bat", "hound"] # getting rid of "coward"
-        self.type = random.choice(choices)
-        
+        """Team-written. Aaron Yuan. Randomly selects a type and configures its attributes."""
+        self.type = random.choice(list(self.MONSTER_STATS.keys()))
+
+        self.max_health = self.MONSTER_STATS[self.type]["health"]
+        self.health = self.max_health
+
         if self.type == "hound": # hound moves twice
             self.speed = 2
         else:
             self.speed = 1
+        
         if self.type == "bat":
             self.path = random.choice(self.BAT_PATHS)
             self.path_index = 0
+        
         return self.type
     
     @property
     def display(self):
-        """Team-written. Returns a unique map character based on the monster's type."""
-        display_chars = {
-            "fairy": "F",
-            "goblin": "G",
-            "zombie": "Z",
-            "coward": "C",
-            "trap": "T",
-            "bat": "B",
-            "hound": "H",
-            "spider": "S"
-        }
-        return display_chars.get(self.type, "M")
+        """Team-written. Aaron Yuan. Returns a unique map character based on the monster's type."""
+        if self.type in self.MONSTER_STATS:
+            return self.MONSTER_STATS[self.type]["display"]
+        return "M"
     @property
     def color(self):
         """AI-assisted. Returns the existing monster color for its health."""
-        if self.health == 10:
+        health_ratio = self.health / self.max_health
+        if health_ratio > 0.75:
             return Colors.green
-        if self.health >= 5:
+        if health_ratio >= 0.4:
             return Colors.yellow
         return Colors.red
     def _is_move_blocked(self, new_pos: np.ndarray, level_map: list[list[Any]], monsters: list) -> bool:
-        """Team-written.
+        """Team-written. Aaron Yuan.
                 
-        See if new position is available to be moved onto"""
+        See if new position is a valid space to be moved onto"""
         new_r, new_c = int(new_pos[0]), int(new_pos[1])
         # Check boundaries
         if new_r < 0 or new_r >= len(level_map) or new_c < 0 or new_c >= len(level_map[0]):
@@ -511,7 +509,7 @@ class Monster:
                 
         return False
     def move(self, player: "Player", level_map: list[list[Any]], monsters: list["Monster"]) -> bool:
-        """Team-written.
+        """Team-written. Jonathan Jiang
         
         Moves based on player position, map, and type of monster"""
 
@@ -523,7 +521,6 @@ class Monster:
                 break
                 
             new_pos = self.position + np.array(move_direction)
-            new_r, new_c = int(new_pos[0]), int(new_pos[1])
 
             # Check player collision
             if np.array_equal(new_pos, player.position):
@@ -538,7 +535,7 @@ class Monster:
         return True
     
     def attack(self, player):
-        """Team-written.
+        """Team-written. Aaron Yuan.
         
         Decreases player health"""
         player.change_health(-self.damage)
@@ -608,7 +605,7 @@ class Floor:
     display = " "
 
     def spelled(self, b = True):
-        """Team-written.
+        """Team-written. Jonathan
         
         \"Spells\" a tile. Or unspells it by passing False."""
 
@@ -616,7 +613,7 @@ class Floor:
         self.update_display()
         
     def update_display(self):
-        """Team-written.
+        """Team-written. Chase
         
         Updates the tile's display based on if it has a spell or not."""
 
