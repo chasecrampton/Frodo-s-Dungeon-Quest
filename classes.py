@@ -424,7 +424,15 @@ class Monster:
     speed = 1
     path_index = 0
     path = []
-
+    MONSTER_STATS = {
+        "fairy":      {"health": 6,  "display": "F"},
+        "bat":        {"health": 8,  "display": "B"},
+        "goblin":     {"health": 10, "display": "G"},
+        "hound":      {"health": 12, "display": "H"},
+        "spider":     {"health": 12, "display": "S"},
+        "zombie":     {"health": 18, "display": "Z"},
+        "trap":       {"health": 25, "display": "T"},
+    }
     BAT_PATHS = [
         # Path 1: 2x2 Square (Right x2, Down x2, Left x2, Up x2)
         [np.array([0, 1]), np.array([0, 1]), np.array([1, 0]), np.array([1, 0]),
@@ -469,10 +477,11 @@ class Monster:
             "fairy": "F",
             "goblin": "G",
             "zombie": "Z",
-            # "coward": "C",
-            "stationary": "S",
+            "coward": "C",
+            "trap": "T",
             "bat": "B",
-            "hound": "H"
+            "hound": "H",
+            "spider": "S"
         }
         return display_chars.get(self.type, "M")
     @property
@@ -541,7 +550,7 @@ class Monster:
         Gets a move based on monster type"""
 
         match self.type:
-            case "stationary":
+            case "trap":
                 return np.array([0, 0])
                 
             case "bat":
@@ -575,17 +584,20 @@ class Monster:
                 if a[0] != 0: options.append(np.array([int(np.sign(a[0])), 0]))
                 if a[1] != 0: options.append(np.array([0, int(np.sign(a[1]))]))
                 return random.choice(options) if options else np.array([0, 0])
-                
-            # case "coward": 
-            #     a = self.position - player_position # Reversed vector
-            #     if abs(a[0]) >= abs(a[1]) and a[0] != 0:
-            #         return np.array([int(np.sign(a[0])), 0])
-            #     elif a[1] != 0:
-            #         return np.array([0, int(np.sign(a[1]))])
-            #     return random.choice([
-            #         np.array([-1, 0]), np.array([0, -1]),
-            #         np.array([1, 0]), np.array([0, 1])
-            #     ])
+            case "spider":
+                # Moves diagonally (and orthogonally when aligned) directly toward the player
+                a = player_position - self.position
+                return np.array([int(np.sign(a[0])), int(np.sign(a[1]))])
+            case "coward": 
+                a = self.position - player_position # Reversed vector
+                if abs(a[0]) >= abs(a[1]) and a[0] != 0:
+                    return np.array([int(np.sign(a[0])), 0])
+                elif a[1] != 0:
+                    return np.array([0, int(np.sign(a[1]))])
+                return random.choice([
+                    np.array([-1, 0]), np.array([0, -1]),
+                    np.array([1, 0]), np.array([0, 1])
+                ])
             case _: # if monster name didn't exist, default to stationary
                 return np.array([0,0])
 
