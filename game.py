@@ -20,7 +20,7 @@ def log_stats(filename: str, stats: dict):
         file.write(str(stats))
         file.close()
 
-def next_level(curr_file: Path, curr_level: str, is_dev_mode: bool):
+def next_level(curr_file: Path, curr_level: str, level_count:int, is_dev_mode: bool):
     """Partially Team-written. Randomly returns the next level's path based on the previous level's difficulty"""
     difficulties = ["easy", "medium", "hard", "boss", "win"]
     curr_dir = curr_file.parent
@@ -49,12 +49,16 @@ def next_level(curr_file: Path, curr_level: str, is_dev_mode: bool):
         directory = Path(__file__).resolve().parent / "levels"
         next_level = random.choice(["easy", "medium", "hard", "boss"])
 
-        match curr_level:
-            case "easy": next_level = random.choice(["easy", "medium"])
-            case "medium": next_level = random.choice(["easy", "medium", "hard"])
-            case "hard": next_level = random.choice(["medium", "hard", "boss"])
-            case "boss": next_level = "win"
-            case _: next_level = "win"
+        # ensures the last 2 levels are hard and boss
+        if level_count == 8: next_level = "hard"
+        elif level_count == 9: next_level = "boss"
+        else:
+            match curr_level:
+                case "easy": next_level = random.choice(["easy", "medium"])
+                case "medium": next_level = random.choice(["easy", "medium", "hard"])
+                case "hard": next_level = random.choice(["hard", "boss"])
+                case "boss": next_level = "win"
+                case _: next_level = "win"
 
         directory = directory / next_level
         
@@ -104,7 +108,7 @@ def main():
     map_view.tag_configure("wounded", foreground="#f5cf67")
     map_view.tag_configure("critical", foreground="#ff8989")
     map_view.grid(row=0, column=0, sticky="nsew")
-    ttk.Label(dungeon, text="@ Frodo   M Monster   + Wall   ! Exit").grid(
+    ttk.Label(dungeon, text="@ Frodo   Z Zombie   F Fairy   H Hound   B Bat   S Statue   + Wall   ? Loot   ! Exit").grid(
         row=1, column=0, sticky="w", pady=(10, 2)
     )
     ttk.Label(dungeon, text="WASD to move  •  Esc to quit").grid(
@@ -122,7 +126,7 @@ def main():
         if not dev_mode_var.get():
             return
             
-        next_file, next_difficulty = next_level(level_file, curr_level, dev_mode_var.get())
+        next_file, next_difficulty = next_level(level_file, curr_level, level_count, is_dev_mode=dev_mode_var.get())
         level = Level(next_file, frodo)
         level_file, curr_level = next_file, next_difficulty
         level_count += 1
@@ -276,7 +280,7 @@ def main():
         # check exit
         row, col = frodo.position
         if isinstance(level.map[row][col], cls.End):
-            next_file, next_difficulty = next_level(level_file, curr_level, dev_mode_var.get())
+            next_file, next_difficulty = next_level(level_file, curr_level, level_count, dev_mode_var.get())
             frodo.action_log.append(f"Triggered end! Advanced to {next_difficulty} difficulty.") # LOGGER
             level = Level(next_file, frodo)
             level_file, curr_level = next_file, next_difficulty
