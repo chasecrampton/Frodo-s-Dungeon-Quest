@@ -1,6 +1,7 @@
 import classes as cls
 import numpy as np
 from pathlib import Path
+import random
 
 def wasd_to_array(key):
     """AI-assisted. Converts a WASD key to a row and column offset."""
@@ -52,9 +53,15 @@ class Level:
                     if space == cls.Monster.display:
                         monster = cls.Monster()
                         monster.position = np.array([r,c])
-                        monster.type = "fairy"
+                        monster.type = monster.chooseRandomMonster()
                         self.monsters.append(monster)
                         row.append(cls.Floor())
+                        continue
+                    if space == "?":
+                        # Pick a random item name from the registered items
+                        item_pool = list(cls.Inventory.AVAILABLE_ITEMS.keys())
+                        random_item = random.choice(item_pool)
+                        row.append(cls.Loot(random_item))
                         continue
                     entity = self.CHAR_CLASSES[space]()
                     row.append(entity)
@@ -82,11 +89,11 @@ class Level:
     def update(self, key):
         """AI-assisted. Advances the level after a successful player move."""
         direction = wasd_to_array(key)
-        if direction is None or not self.player.move(direction, self.map):
+        if direction is None or not self.player.move(direction, self.map, self.monsters):
             return
 
         for monster in self.monsters:
-            monster.move(self.player.position, self.map)
+            monster.move(self.player, self.map, self.monsters)
 
     def change_grid(self, position, entity):
         """
@@ -97,3 +104,9 @@ class Level:
 
         row, col = position
         self.map[row][col] = entity
+    def clear_spell_effects(self):
+        """Team-written. Clears all temporary spell effects from the floor."""
+        for row in self.map:
+            for tile in row:
+                if isinstance(tile, cls.Floor) and getattr(tile, 'hasEffect', False):
+                    tile.spelled(False)
