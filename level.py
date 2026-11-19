@@ -14,7 +14,7 @@ class Level:
     CHAR_CLASSES = {
         "-": cls.Floor,
         cls.Obstacle.display: cls.Obstacle,
-        cls.Monster.display: cls.Monster,
+        cls.Monster.map_char: cls.Monster,
         cls.End.display: cls.End,
         cls.Player.display: cls.Player
     }
@@ -50,7 +50,7 @@ class Level:
                         self.player.position = np.array([r, c])
                         row.append(cls.Floor())
                         continue
-                    if space == cls.Monster.display:
+                    if space == cls.Monster.map_char:
                         monster = cls.Monster()
                         monster.position = np.array([r,c])
                         monster.type = monster.chooseRandomMonster()

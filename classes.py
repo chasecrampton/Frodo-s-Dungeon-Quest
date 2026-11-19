@@ -146,12 +146,12 @@ class Weapon:
         if isinstance(direction, str):
             key = direction.lower()
             if key not in self.DIRECTION_MAP:
-                return None
+                return np.array([0,0])
             return np.array(self.DIRECTION_MAP[key])
         return np.array(direction)
 
     def attack(self, player, direction, level_map, monsters):
-        """AI-assisted. Fires an attack from the player in one direction and returns hit monsters and affected coordinates."""
+        """AI-assisted, with one line made by Jonathan. Fires an attack from the player in one direction and returns hit monsters and affected coordinates."""
         dir_vec = self._normalize_direction(direction)
         if dir_vec is None or np.array_equal(dir_vec, [0, 0]):
             return [], []
@@ -168,6 +168,9 @@ class Weapon:
                 continue
 
             if self.spell_effect and isinstance(target_tile, Floor):
+                level_map[r][c] = Floor()
+                 # ^this burns up the item lol. more specifically, because Item/Loot implements/subclass of Floor, 
+                 # it goes throught the if statement. then we just set it to floor lol.
                 target_tile.spelled(True)
 
             # Check if any monsters are standing here
@@ -436,11 +439,32 @@ class Player:
         print(self.health)
     
 class Monster:
-    display = "M"
+    map_char = "M"
     health = 10
     position = np.array([0,0])
     type = "fairy" # delete this (and getMove and corresponding move(self) if only 1 monster type)
     damage = 10
+    speed = 1
+    path_index = 0
+    path = []
+
+    BAT_PATHS = [
+        # Path 1: 2x2 Square (Right x2, Down x2, Left x2, Up x2)
+        [np.array([0, 1]), np.array([0, 1]), np.array([1, 0]), np.array([1, 0]),
+         np.array([0, -1]), np.array([0, -1]), np.array([-1, 0]), np.array([-1, 0])],
+         
+        # Path 2: Vertical Patrol (Down x3, Up x3)
+        [np.array([1, 0]), np.array([1, 0]), np.array([1, 0]), 
+         np.array([-1, 0]), np.array([-1, 0]), np.array([-1, 0])],
+         
+        # Path 3: Horizontal Patrol (Right x3, Left x3)
+        [np.array([0, 1]), np.array([0, 1]), np.array([0, 1]), 
+         np.array([0, -1]), np.array([0, -1]), np.array([0, -1])],
+         
+        # Path 4: Tight Circle (Right, Down, Left, Up)
+        [np.array([0, 1]), np.array([1, 0]), np.array([0, -1]), np.array([-1, 0])]
+    ]
+
     def update_health(self, h):
         """Team-written.
         
@@ -448,7 +472,32 @@ class Monster:
 
         self.health += h
     def chooseRandomMonster(self):
-        return random.choice(["fairy", "goblin"])
+        """Team-written. Randomly selects a type and configures its attributes."""
+        choices = ["fairy", "goblin", "zombie", "stationary", "bat", "hound"] # getting rid of "coward"
+        self.type = random.choice(choices)
+        
+        if self.type == "hound": # hound moves twice
+            self.speed = 2
+        else:
+            self.speed = 1
+        if self.type == "bat":
+            self.path = random.choice(self.BAT_PATHS)
+            self.path_index = 0
+        return self.type
+    
+    @property
+    def display(self):
+        """Team-written. Returns a unique map character based on the monster's type."""
+        display_chars = {
+            "fairy": "F",
+            "goblin": "G",
+            "zombie": "Z",
+            # "coward": "C",
+            "stationary": "S",
+            "bat": "B",
+            "hound": "H"
+        }
+        return display_chars.get(self.type, "M")
     @property
     def color(self):
         """AI-assisted. Returns the existing monster color for its health."""
@@ -461,50 +510,106 @@ class Monster:
     def move(self, player, level_map, monsters):
         """Team-written.
         
-        Moves based on player position and map"""
+        Moves based on player position, map, and type of monster"""
 
-        move_direction = self.getMove(player.position)
-        new_pos = self.position + np.array(move_direction)
-        new_r, new_c = int(new_pos[0]), int(new_pos[1])
-
-        if new_r < 0 or new_r >= len(level_map) or new_c < 0 or new_c >= len(level_map[0]):
-            return False # outside map boundary
-        if np.array_equal(new_pos, player.position):
-            self.attack(player) # Apply monster damage
-            return False # doesn't move monster
-        
-        target_tile = level_map[new_r][new_c]
-        if not isinstance(target_tile, Floor): # doesn't work if not moving to an open floor space
-            return False
-        for other in monsters:
-            if other is not self and np.array_equal(new_pos, other.position):
-                return False
+        for step in range(self.speed):
+            move_direction = self.getMove(player.position)
             
-        self.position = new_pos
+            # If the monster wants to stay still, skip processing
+            if np.array_equal(move_direction, [0, 0]):
+                break
+                
+            new_pos = self.position + np.array(move_direction)
+            new_r, new_c = int(new_pos[0]), int(new_pos[1])
+
+            # Check boundaries
+            if new_r < 0 or new_r >= len(level_map) or new_c < 0 or new_c >= len(level_map[0]):
+                break # Cancel remaining steps if hitting the edge of the map
+                
+            # Check player collision
+            if np.array_equal(new_pos, player.position):
+                self.attack(player) 
+                break # Attack the player and end movement turn
+                
+            # Check collision with another monster
+            blocked = False
+            for other in monsters:
+                if other is not self and np.array_equal(new_pos, other.position):
+                    blocked = True
+                    break
+            if blocked:
+                break # Stop if blocked by a friend
+                    
+            # Check walls
+            target_tile = level_map[new_r][new_c]
+            if not isinstance(target_tile, Floor):
+                break # Stop if hitting a wall
+                
+            # Move successful; update poition
+            self.position = new_pos
+            
         return True
+    
     def attack(self, player):
         """Team-written.
         
         Decreases player health"""
         player.change_health(-self.damage)
         return
+    
     def getMove(self, player_position = [0,0]):
-        """Team-written.
+        """Team-written. Jonathan
         
         Gets a move based on monster type"""
 
         match self.type:
-            case "fairy": # fairy = random movement
-                return random.choice([
-                    np.array([-1, 0]),
-                    np.array([0, -1]),
-                    np.array([1, 0]),
-                    np.array([0, 1])]) # does inclusive random integer
-            case "goblin":
+            case "stationary":
+                return np.array([0, 0])
+                
+            case "bat":
+                # Cycle through the predefined path array
+                move = self.path[self.path_index % len(self.path)]
+                self.path_index += 1
+                return move
+                
+            case "hound":
+                # Hound uses goblin logic, but its speed=2 allows it to execute it twice
                 a = player_position - self.position
                 if abs(a[0]) >= abs(a[1]):
-                    return np.array([int(np.sign(a[0])), 0]) # towards by row
-                return np.array([0, int(np.sign(a[1]))]) # towards by column
+                    return np.array([int(np.sign(a[0])), 0])
+                return np.array([0, int(np.sign(a[1]))])
+                
+            case "fairy": 
+                return random.choice([
+                    np.array([-1, 0]), np.array([0, -1]),
+                    np.array([1, 0]), np.array([0, 1])
+                ])
+                    
+            case "goblin": 
+                a = player_position - self.position
+                if abs(a[0]) >= abs(a[1]):
+                    return np.array([int(np.sign(a[0])), 0]) 
+                return np.array([0, int(np.sign(a[1]))]) 
+                
+            case "zombie": 
+                a = player_position - self.position
+                options = []
+                if a[0] != 0: options.append(np.array([int(np.sign(a[0])), 0]))
+                if a[1] != 0: options.append(np.array([0, int(np.sign(a[1]))]))
+                return random.choice(options) if options else np.array([0, 0])
+                
+            # case "coward": 
+            #     a = self.position - player_position # Reversed vector
+            #     if abs(a[0]) >= abs(a[1]) and a[0] != 0:
+            #         return np.array([int(np.sign(a[0])), 0])
+            #     elif a[1] != 0:
+            #         return np.array([0, int(np.sign(a[1]))])
+            #     return random.choice([
+            #         np.array([-1, 0]), np.array([0, -1]),
+            #         np.array([1, 0]), np.array([0, 1])
+            #     ])
+            case _: # if monster name didn't exist, default to stationary
+                return np.array([0,0])
 
 class Floor:
     color = None
