@@ -33,7 +33,7 @@ def log_stats(filename: str, stats: dict):
         file.close()
 
 def next_level(curr_file: Path, curr_level: str, level_count:int, is_dev_mode: bool):
-    """Partially Team-written, partially AI-written. Jonathan, Chase
+    """ Team-written, partially AI-written. Jonathan, Chase
     
     Randomly returns the next level's path based on the previous level's difficulty"""
     difficulties = ["easy", "medium", "hard", "boss", "win"]
