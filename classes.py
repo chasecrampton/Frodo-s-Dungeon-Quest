@@ -359,7 +359,7 @@ class Player:
         return True
 
     def add_to_inventory(self, item: str):
-        """Team-written. Jonathan
+        """Team-written. Jonathan Winfield
         
         Adds item to players inventory"""
         self.inventory.add_item(item)
@@ -371,7 +371,7 @@ class Player:
         """
         return self.inventory.use_item(item, self)
     def change_health(self, x: int):
-        """Team-written. Jonathan
+        """Team-written. Jonathan Winfield
         
         Updates players health
         """
