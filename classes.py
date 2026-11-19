@@ -2,6 +2,7 @@ import random
 import numpy as np
 from typing import Any
 from spell_utils import get_aoe_tiles
+
 class Colors:
     green = "\033[32m"
     yellow = "\033[33m"
@@ -417,7 +418,7 @@ class Player:
     
 class Monster:
     map_char = "M"
-    health = 10
+    health = 30
     position = np.array([0,0])
     type = "fairy" # delete this (and getMove and corresponding move(self) if only 1 monster type)
     damage = 10
