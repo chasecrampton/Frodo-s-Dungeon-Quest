@@ -66,6 +66,7 @@ def next_level(curr_file: Path, curr_level: str, is_dev_mode: bool):
 
 def main():
     """AI-assisted. Opens the character map and player stats in one window."""
+    frodo.action_log = []
     level_file = Path(__file__).resolve().parent / "levels" / "easy" / "easy.txt"
     level = Level(level_file, frodo)
     curr_level = "easy"
@@ -173,6 +174,7 @@ def main():
             frodo.equip_weapon(cls.Weapon(frodo.spell_slots[0]))
                 
             status_label.configure(text=f"Deleted {spell_name} spell.")
+            frodo.action_log.append(f"Deleted spell: {spell_name}") # LOGGER
             refresh()
 
     # Define what happens when an inventory button is clicked
@@ -183,9 +185,11 @@ def main():
             
             if result is False:
                 status_label.configure(text=f"Cannot use {item_name}! (Spells full?)")
+                frodo.action_log.append(f"Attempted to use {item_name} but failed.") # LOGGER
             else:
                 # 'result' is a string describing the result
                 status_label.configure(text=result)
+                frodo.action_log.append(f"Used {item_name}. Result: {result}") # LOGGER
                 
             refresh() # Instantly update health/inventory amounts
 
@@ -197,7 +201,7 @@ def main():
     def queue_spell(event):
         """Team-written. Stages a spell slot (1-4)."""
         nonlocal pending_spell
-        slot_number = int(event.char) - 1
+        slot_number = int(event.char) - 1\
         
         if slot_number < len(frodo.spell_slots):
             pending_spell = slot_number
@@ -228,6 +232,8 @@ def main():
         direction_key = event.keysym.lower()
         if pending_spell is not None:
             # Fire the spell instead of moving
+            spell_name = frodo.spell_slots[pending_spell]
+            frodo.action_log.append(f"Cast '{spell_name}' spell in direction '{direction_key}'") # LOGGER
             frodo.cast_spell(pending_spell, direction_key, level.map, level.monsters)
             
             # Allow monsters to move/attack after you cast
@@ -237,10 +243,18 @@ def main():
             pending_spell = None # Reset the spell queue
         else:
             # Standard movement step
+            frodo.action_log.append(f"Moved in direction '{direction_key}'") # LOGGER
             level.update(direction_key)
             status_label.configure(text="Ready.")
         # check death
         if frodo.health <= 0:
+            summary = {
+                "final_level": level_count,
+                "total_actions": len(frodo.action_log),
+                "history": frodo.action_log
+            }
+            log_stats("game_results.txt", summary) 
+
             map_view.configure(state="normal")
             map_view.delete("1.0", "end")
             map_view.insert("1.0", "YOU DIED.\nPress Esc to exit.", "map")
@@ -250,6 +264,7 @@ def main():
         row, col = frodo.position
         if isinstance(level.map[row][col], cls.End):
             next_file, next_difficulty = next_level(level_file, curr_level, dev_mode_var.get())
+            frodo.action_log.append(f"Triggered end! Advanced to {next_difficulty} difficulty.") # LOGGER
             level = Level(next_file, frodo)
             level_file, curr_level = next_file, next_difficulty
             level_count += 1

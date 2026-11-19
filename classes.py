@@ -180,6 +180,7 @@ class Weapon:
                     hit_monsters.append(monster)
                     if monster.health <= 0:
                         monsters.remove(monster)
+                        player.action_log.append(f"Killed a {monster.type} monster!") # LOGGER
 
         return hit_monsters, affected_tiles
 
@@ -350,9 +351,9 @@ class Player:
     spell_slots = ["base"] # Maximum of 4 spell slots
 
     def __init__(self) -> None:
-        pass
+        self.action_log = [] # LOGGER
 
-    def move(self, move_direction, level_map, monsters):
+    def move(self, move_direction, level_map, monsters: list[Monster]):
         """Team-written.
         
         Moves the player in a direction. Returns True or False based on if the player was able to move.
@@ -374,6 +375,7 @@ class Player:
         # User picking up items
         if getattr(target_tile, 'item_name', None):
             self.add_to_inventory(target_tile.item_name)
+            self.action_log.append(f"Picked up item: {target_tile.item_name}") # LOGGER
             # Remove item from floor
             level_map[new_r][new_c] = Floor()
 
@@ -555,6 +557,7 @@ class Monster:
         
         Decreases player health"""
         player.change_health(-self.damage)
+        player.action_log.append(f"Got hurt by a {self.type} monster for {self.damage} damage!") # LOGGER
         return
     
     def getMove(self, player_position = [0,0]):
