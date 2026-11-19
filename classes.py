@@ -50,24 +50,76 @@ class Weapon:
         'base': {
             'type': "None",
             'damage': 5,
-            'range': 1,          # Adjacent tile only
-            'pierce': False,     # Stops at the first monster hit
+            'range': 1,
+            'pierce': False,
             'spell_effect': True,
             'area_type': 'circle'
         },
-        'fireCone': {
-            'type': "Fire",
-            'damage': 10,
-            'range': 3,
-            'pierce': False,
-            'spell_effect': True,  # Triggers Floor.spelled() along the path
-            'area_type': 'cone'
+        
+        # --- FIRE VARIATIONS ---
+        'fire_cone': {
+            'type': "Fire", 'damage': 10, 'range': 3,
+            'pierce': False, 'spell_effect': True, 'area_type': 'cone'
         },
-        'lightningLine': {
-            'type': "Lightning",
-            'damage': 8,
-            'range': 4,
-            'pierce': True,       # Hits every monster in a line
+        'fire_nova': {
+            'type': "Fire", 'damage': 10, 'range': 2,           
+            'pierce': True, 'spell_effect': True, 'area_type': 'circle'
+        },
+        'fire_bolt': {
+            'type': "Fire", 'damage': 10, 'range': 6,           
+            'pierce': False, 'spell_effect': True, 'area_type': 'line'
+        },
+        
+        # --- LIGHTNING VARIATIONS ---
+        'lightning_bolt': {
+            'type': "Lightning", 'damage': 8, 'range': 4,
+            'pierce': True, 'spell_effect': True, 'area_type': 'line'
+        },
+        'lightning_fork': {
+            'type': "Lightning", 'damage': 6, 'range': 3,
+            'pierce': True, 'spell_effect': True, 'area_type': 'cone'
+        },
+        'lightning_storm': {
+            'type': "Lightning", 'damage': 5, 'range': 4,
+            'pierce': True, 'spell_effect': True, 'area_type': 'circle'
+        },
+
+        # --- FROST VARIATIONS ---
+        'frost_nova': {
+            'type': "Frost", 'damage': 6, 'range': 2,
+            'pierce': True, 'spell_effect': True, 'area_type': 'circle'
+        },
+        'frost_lance': {
+            'type': "Frost", 'damage': 12, 'range': 5,
+            'pierce': False, 'spell_effect': True, 'area_type': 'line'
+        },
+        'frost_cone': {
+            'type': "Frost", 'damage': 8, 'range': 3,
+            'pierce': True, 'spell_effect': True, 'area_type': 'cone'
+        },
+
+        # --- EARTH VARIATIONS ---
+        'earth_spike': {
+            'type': "Earth", 'damage': 15, 'range': 2,
+            'pierce': False, 'spell_effect': True, 'area_type': 'line'
+        },
+        'earth_quake': {
+            'type': "Earth", 'damage': 7, 'range': 3,
+            'pierce': True, 'spell_effect': True, 'area_type': 'circle'
+        },
+        'frost_circle': {
+            'type': "Frost",
+            'damage': 6,
+            'range': 2,
+            'pierce': True,       # Hits everything in the blast radius
+            'spell_effect': True,
+            'area_type': 'circle'
+        },
+        'void_beam': {
+            'type': "Void",
+            'damage': 20,         # High damage
+            'range': 6,           # Long range
+            'pierce': False,      # Stops at the first enemy hit
             'spell_effect': True,
             'area_type': 'line'
         }
@@ -161,13 +213,15 @@ class HealthPack:
     def use(self, player):
         """AI-assisted. Restores health to the player."""
         player.change_health(self.heal_amount)
+        return f"Restored {self.heal_amount} health!"
 
 class TotemOfUndying:
     name = "TotemOfUndying"
 
     def use(self, player):
         """AI-assisted. Restores a large amount of health to the player."""
-        player.change_health(50)
+        player.change_health(100)
+        return "Restored 100 health!"
 
 class StrengthPotion:
     name = "StrengthPotion"
@@ -175,6 +229,28 @@ class StrengthPotion:
     def use(self, player):
         """AI-assisted. Increases the player's base damage permanently."""
         player.damage += 5
+        return "Increased base damage by 5!"
+
+class Whetstone:
+    name = "Whetstone"
+
+    def use(self, player):
+        """AI-assisted. Permanently increases base damage."""
+        player.damage += 3
+        return "Increased base damage by 3!"
+
+class MysteryBrew:
+    name = "MysteryBrew"
+
+    def use(self, player):
+        """AI-assisted. 50/50 chance to either heal you greatly or deal damage."""
+        import random
+        if random.random() > 0.5:
+            player.change_health(20)
+            return "Increased health by 20!"
+        else:
+            player.change_health(-15)
+            return "Decreased health by 15!"
 
 class MagicScroll:
     name = "MagicScroll"
@@ -182,14 +258,21 @@ class MagicScroll:
     def use(self, player):
         """AI-assisted. Unlocks a new spell slot for the player."""
         # Find spells in the game that the player doesn't have yet
+        if len(player.spell_slots) >= 4:
+            return False
+            
         available_spells = [spell for spell in Weapon.STAFF_TYPES.keys() if spell not in player.spell_slots]
         
         if available_spells:
             new_spell = random.choice(available_spells)
             player.spell_slots.append(new_spell)
+            return f"Learned the {new_spell.capitalize()} spell!"
         else:
             # Fallback if they have all spells/this spell
-            player.health += 25
+            player.health += 15
+            return "Already know all spells! Restored 15 health instead."
+            
+        return True
 
 class Inventory:
     # Central registry of all usable items in the game
@@ -197,6 +280,8 @@ class Inventory:
         "HealthPack": HealthPack,
         "TotemOfUndying": TotemOfUndying,
         "StrengthPotion": StrengthPotion,
+        "Whetstone": Whetstone,
+        "MysteryBrew": MysteryBrew,
         "MagicScroll": MagicScroll,
     }
 
@@ -219,15 +304,22 @@ class Inventory:
         self.items[name] += amount
 
     def use_item(self, item, player):
-        """AI-assisted. Triggers the item's .use() method and decrements its count if available."""
+        """AI-assisted. Triggers the item's .use() method and decrements its count."""
         name = self._resolve_name(item)
         if self.items.get(name, 0) <= 0:
             return False
 
         item_instance = self.AVAILABLE_ITEMS[name]()
-        item_instance.use(player)
+        result = item_instance.use(player)
+        
+        # If it explicitly returned False, the item failed to activate
+        if result is False:
+            return False
+            
         self.items[name] -= 1
-        return True
+        
+        # Return the descriptive message string instead of True
+        return result
 
     def get_count(self, item):
         """AI-assisted. Returns the current tally for a specific item."""
@@ -296,7 +388,7 @@ class Player:
         
         If the player has the item in the inventory, use it. Returns wehter the item was used or not.
         """
-        self.inventory.use_item(item, self)
+        return self.inventory.use_item(item, self)
     def change_health(self, x):
         """Team-written.
         

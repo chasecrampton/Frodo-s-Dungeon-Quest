@@ -160,7 +160,38 @@ def main():
     )
     skip_button.grid(row=5, column=0, sticky="w", pady=(5, 0))
 
-    stats = StatsPanel(root)
+    def delete_spell_ui(spell_name):
+        """Team-written. Deletes a spell to make room for new ones."""
+        if len(frodo.spell_slots) <= 1:
+            status_label.configure(text="Cannot delete your only spell!")
+            return
+            
+        if spell_name in frodo.spell_slots:
+            frodo.spell_slots.remove(spell_name)
+            
+            # Force equip the first available spell to prevent holding a deleted weapon
+            frodo.equip_weapon(cls.Weapon(frodo.spell_slots[0]))
+                
+            status_label.configure(text=f"Deleted {spell_name} spell.")
+            refresh()
+
+    # Define what happens when an inventory button is clicked
+    def use_item_ui(item_name):
+        """Team-written. Uses clicked item and refreshes UI."""
+        if frodo.inventory.get_count(item_name) > 0: # if number of item exists
+            result = frodo.use_item(item_name) # use the item, returns False or a string describing what the item did
+            
+            if result is False:
+                status_label.configure(text=f"Cannot use {item_name}! (Spells full?)")
+            else:
+                # 'result' is a string describing the result
+                status_label.configure(text=result)
+                
+            refresh() # Instantly update health/inventory amounts
+
+    # Pass the function to the StatsPanel
+    stats = StatsPanel(root, item_callback=use_item_ui, delete_spell_callback=delete_spell_ui)
+    stats.grid(row=0, column=1, sticky="new", padx=(0, 16), pady=16)
     stats.grid(row=0, column=1, sticky="new", padx=(0, 16), pady=16)
 
     def queue_spell(event):
