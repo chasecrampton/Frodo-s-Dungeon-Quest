@@ -131,7 +131,7 @@ class Weapon:
             target_tile.spelled(True)
         return
 
-    def attack(self, player, direction, level_map: list[list[Any]], monsters: list[Monster])-> tuple[list, list]:
+    def attack(self, player, direction, level_map: list[list[Any]], monsters: list["Monster"])-> tuple[list, list]:
         """AI-assisted, with one line made by Jonathan. Fires an attack from the player in one direction and returns hit monsters and affected coordinates."""
         dir_vec = self._normalize_direction(direction)
         if dir_vec is None or np.array_equal(dir_vec, [0, 0]):
@@ -327,7 +327,7 @@ class Player:
         self.spell_slots = ["base"]
         self.action_log: list[str] = []
 
-    def move(self, move_direction: np.ndarray, level_map: list[list[Any]], monsters: list[Monster]) -> bool:
+    def move(self, move_direction: np.ndarray, level_map: list[list[Any]], monsters: list["Monster"]) -> bool:
         """Team-written.
         
         Moves the player in a direction. Returns True or False based on if the player was able to move.
@@ -393,7 +393,7 @@ class Player:
 
         self.weapon = weapon
 
-    def attack(self, direction: np.ndarray, level_map: list[list[Any]], monsters: list[Monster]):
+    def attack(self, direction: np.ndarray, level_map: list[list[Any]], monsters: list["Monster"]):
         """AI-assisted. Attacks in a chosen direction and returns hit monsters and affected tile coordinates."""
         return self.weapon.attack(self, direction, level_map, monsters)
     
@@ -500,7 +500,7 @@ class Monster:
                 return True
                 
         return False
-    def move(self, player: "Player", level_map: list[list[Any]], monsters: list[Monster]) -> bool:
+    def move(self, player: "Player", level_map: list[list[Any]], monsters: list["Monster"]) -> bool:
         """Team-written.
         
         Moves based on player position, map, and type of monster"""
