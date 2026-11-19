@@ -30,6 +30,10 @@ class Level:
         self.player = player
         self.monsters = []
         self.map = self.read_level(str(level_file))
+        if isinstance(level_file, str):
+            self.name = level_file
+        else:
+            self.name = level_file.name
 
     def read_level(self, filepath: str):
         """

@@ -225,6 +225,16 @@ def main():
         map_view.configure(state="disabled")
         stats.refresh(frodo, level_file.stem, level_count)
 
+    def save_game_log(outcome: str):
+        """Team-written. Writes the final game summary to a log file."""
+        summary = {
+            "outcome": outcome,
+            "final_level": level_count,
+            "total_actions": len(frodo.action_log),
+            "history": frodo.action_log
+        }
+        log_stats("game_results.txt", summary)
+    
     def move(event):
         """AI-assisted. Moves Frodo and refreshes the window after a keypress."""
         nonlocal level, level_file, curr_level, pending_spell, level_count
@@ -248,18 +258,21 @@ def main():
             status_label.configure(text="Ready.")
         # check death
         if frodo.health <= 0:
-            summary = {
-                "final_level": level_count,
-                "total_actions": len(frodo.action_log),
-                "history": frodo.action_log
-            }
-            log_stats("game_results.txt", summary) 
+            save_game_log("Died")
 
             map_view.configure(state="normal")
             map_view.delete("1.0", "end")
             map_view.insert("1.0", "YOU DIED.\nPress Esc to exit.", "map")
             map_view.configure(state="disabled")
             return
+        # Check if any monsters are still alive
+        for monster in level.monsters:
+            if monster.health > 0:
+                break
+        else:
+            # Runs only if the loop finishes without finding a living monster
+            status_label.configure(text="Room cleared! All monsters defeated.")
+            frodo.action_log.append(f"Cleared all monsters in {level.name}")
         # check exit
         row, col = frodo.position
         if isinstance(level.map[row][col], cls.End):
@@ -269,12 +282,20 @@ def main():
             level_file, curr_level = next_file, next_difficulty
             level_count += 1
 
+            if next_difficulty == "win":
+                save_game_log("Won")
+
         refresh()
+    def quit_game(event):
+        """AI-written. Saves the log and closes the window."""
+        if frodo.health > 0 and curr_level != "win":
+            save_game_log("Quit")
+        root.destroy()
     for key in "1234":
         root.bind(f"<KeyPress-{key}>", queue_spell)
     for key in "wasdWASD":
         root.bind(f"<KeyPress-{key}>", move)
-    root.bind("<Escape>", lambda event: root.destroy())
+    root.bind("<Escape>", quit_game)
     refresh()
     root.mainloop()
 
