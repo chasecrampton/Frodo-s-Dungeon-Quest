@@ -108,6 +108,7 @@ class Weapon:
     area_type = 'circle'
 
     def __init__(self, weapon_type: str):
+        """Team-written. Jonathan. Initializes the weapon with a staff type."""
         self.update(weapon_type)
 
     def _normalize_direction(self, direction) -> np.ndarray:
@@ -177,12 +178,14 @@ class End:
     display = "!"
 
     def __init__(self) -> None:
+        """Team-written. Initializes the exit tile."""
         pass
 
 class Obstacle:
     display = "+"
 
     def __init__(self) -> None:
+        """Team-written. Initializes an obstacle tile."""
         pass
 
 

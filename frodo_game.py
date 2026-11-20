@@ -33,7 +33,7 @@ def log_stats(filename: str, stats: dict):
         file.close()
 
 def next_level(curr_file: Path, curr_level: str, level_count:int, is_dev_mode: bool):
-    """ Team-written, partially AI-written. Jonathan, Chase
+    """ Team-written, partially AI-assisted. Jonathan, Chase
     
     Randomly returns the next level's path based on the previous level's difficulty"""
     difficulties = ["easy", "medium", "hard", "boss", "win"]
@@ -180,7 +180,7 @@ def main():
     skip_button.grid(row=4, column=0, sticky="w", pady=(5, 0))
 
     def delete_spell_ui(spell_name):
-        """AI-written. 
+        """AI-assisted. 
         Deletes a spell to make room for new ones."""
         if len(frodo.spell_slots) <= 1:
             status_label.configure(text="Cannot delete your only spell!")
@@ -198,7 +198,7 @@ def main():
 
     # Define what happens when an inventory button is clicked
     def use_item_ui(item_name):
-        """AI-written. Uses clicked item and refreshes UI."""
+        """AI-assisted. Uses clicked item and refreshes UI."""
         if frodo.inventory.get_count(item_name) > 0: # if number of item exists
             result = frodo.use_item(item_name) # use the item, returns False or a string describing what the item did
             
@@ -217,7 +217,7 @@ def main():
     stats.grid(row=0, column=1, sticky="nsew", padx=(0, 16), pady=16)
 
     def queue_spell(event):
-        """AI-written. Stages a spell slot (1-4)."""
+        """AI-assisted. Stages a spell slot (1-4)."""
         nonlocal pending_spell
         slot_number = int(event.char) - 1\
         
@@ -306,7 +306,7 @@ def main():
 
         refresh()
     def quit_game(event):
-        """AI-written. Saves the log and closes the window."""
+        """AI-assisted. Saves the log and closes the window."""
         if frodo.health > 0 and curr_level != "win":
             save_game_log("Quit")
         root.destroy()
