@@ -399,7 +399,7 @@ class Player:
         return self.weapon.attack(self, direction, level_map, monsters)
     
     def cast_spell(self, slot_index: int, direction, level_map: list[list[Any]], monsters: list) -> tuple[list, list]:
-        """AI-written. Casts a spell from the designated slot index."""
+        """AI-assisted. Casts a spell from the designated slot index."""
         if slot_index >= len(self.spell_slots):
             return [], []
             
