@@ -12,25 +12,24 @@
 
 from pathlib import Path
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 import random
-
+from typing import Any
 from level import Level
 import classes as cls
 from stats import StatsPanel
 
 frodo = cls.Player()
 
-def log_stats(filename: str, stats: dict):
+def log_stats(filename: str, stats: Any, mode: str = "w"):
     """
     Team-written. Chase
 
     Writes stats to a log file at the end of each game
     """
 
-    with open(filename, "w") as file:
-        file.write(str(stats))
-        file.close()
+    with open(filename, mode) as file:
+        file.write(str(stats) + "\n")
 
 def next_level(curr_file: Path, curr_level: str, level_count:int, is_dev_mode: bool):
     """ Team-written, partially AI-assisted. Jonathan, Chase
@@ -84,12 +83,15 @@ def next_level(curr_file: Path, curr_level: str, level_count:int, is_dev_mode: b
 
 def main():
     """AI-assisted. Opens the character map and player stats in one window."""
+    log_stats("game_results.txt", "=== NEW GAME STARTED ===", mode="w")
+    logged_count = 0
+    
     frodo.action_log = []
     level_file = Path(__file__).resolve().parent / "levels" / "easy" / "easy.txt"
     level = Level(level_file, frodo)
     curr_level = "easy"
     level_count = 1
-
+    
     root = tk.Tk()
     root.title("Frodo's Dungeon Quest")
     root.columnconfigure(0, weight=1)
@@ -149,6 +151,29 @@ def main():
         pending_spell = None
         status_label.configure(text="Ready.")
         refresh()
+
+    def show_rules():
+        """AI-assisted. Displays the game rules, controls, and combat mechanics."""
+        rules_text = (
+            "OBJECTIVE:\n"
+            "• Navigate each dungeon floor and reach the exit (!).\n"
+            "• Survive 10 floors (culminating in Hard and Boss levels) to win.\n\n"
+            "CONTROLS:\n"
+            "• W / A / S / D : Move one tile (bumping into a monster makes it attack you!).\n"
+            "• 1 / 2 / 3 / 4 : Prime a spell slot, then press W/A/S/D to fire in that direction.\n"
+            "• Inventory Buttons : Click to use items immediately.\n"
+            "• Esc : Save your game log and quit.\n\n"
+            "TILES & MECHANICS:\n"
+            "• @ : Frodo (Green = healthy, Yellow <= 40 HP, Red <= 15 HP)\n"
+            "• ? : Loot (Walk over to collect; hitting loot with a spell burns it up!)\n"
+            "• + : Wall (Blocks movement and non-piercing spells)\n"
+            "• # : Temporary spell effect on the floor\n"
+            "• M : Any other letters are Monsters"
+        )
+        messagebox.showinfo("Rules & Help — Frodo's Dungeon Quest", rules_text)
+
+    help_button = ttk.Button(dungeon, text="Rules / Help", command=show_rules)
+    help_button.grid(row=5, column=0, sticky="w", pady=(8, 0))
 
     def toggle_dev_mode():
         """Team-written. Jonathan
@@ -242,6 +267,10 @@ def main():
             map_view.tag_add(health_tags[entity.color], start, f"{start}+1c")
         map_view.configure(state="disabled")
         stats.refresh(frodo, level_file.stem, level_count)
+        nonlocal logged_count
+        while logged_count < len(frodo.action_log):
+            log_stats("game_results.txt", frodo.action_log[logged_count], mode="a")
+            logged_count += 1
 
     def save_game_log(outcome: str):
         """Team-written. Writes the final game summary to a log file."""
@@ -296,7 +325,7 @@ def main():
         row, col = frodo.position
         if isinstance(level.map[row][col], cls.End):
             next_file, next_difficulty = next_level(level_file, curr_level, level_count, dev_mode_var.get())
-            frodo.action_log.append(f"Triggered end! Advanced to {next_difficulty} difficulty.") # LOGGER
+            frodo.action_log.append(f"Triggered end! Advanced to {next_difficulty} difficulty: {level.name}.") # LOGGER
             level = Level(next_file, frodo)
             level_file, curr_level = next_file, next_difficulty
             level_count += 1

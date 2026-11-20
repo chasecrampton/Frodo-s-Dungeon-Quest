@@ -1,3 +1,15 @@
+# By submitting this assignment, I agree to the following:
+#   "Aggies do not lie, cheat, or steal, or tolerate those who do."
+#   "I have not given or received any unauthorized aid on this assignment."
+#
+# Names:       Chase Crampton
+#              Winfield Fleming
+#              Aaron Yuan
+#              Jonathan Jiang
+# Section:     218
+# Assignment:  L6 - Frodo Adventure
+# Date:        19 11 2026
+
 import random
 import numpy as np
 from typing import Any
@@ -326,6 +338,7 @@ class Player:
     position = np.array([0,0])
 
     def __init__(self) -> None:
+        """Team-written. Initiallizes a Player tile/character Jonathan"""
         self.inventory = Inventory()
         self.weapon = Weapon('base')
         self.spell_slots = ["base"]
@@ -567,11 +580,12 @@ class Monster:
                 return move
                 
             case "hound":
-                # Hound uses goblin logic, but its speed=2 allows it to execute it twice
+                # Hound uses zombie logic, but its speed=2 allows it to execute it twice
                 a = player_position - self.position
-                if abs(a[0]) >= abs(a[1]):
-                    return np.array([int(np.sign(a[0])), 0])
-                return np.array([0, int(np.sign(a[1]))])
+                options = []
+                if a[0] != 0: options.append(np.array([int(np.sign(a[0])), 0]))
+                if a[1] != 0: options.append(np.array([0, int(np.sign(a[1]))]))
+                return random.choice(options) if options else np.array([0, 0])
                 
             case "fairy": 
                 return random.choice([
@@ -632,5 +646,6 @@ class Loot(Floor):
     display = "?"
     
     def __init__(self, item_name):
+        """Team-written. Jonathan initializes a Loot tile"""
         super().__init__()
         self.item_name = item_name

@@ -1,3 +1,15 @@
+# By submitting this assignment, I agree to the following:
+#   "Aggies do not lie, cheat, or steal, or tolerate those who do."
+#   "I have not given or received any unauthorized aid on this assignment."
+#
+# Names:       Chase Crampton
+#              Winfield Fleming
+#              Aaron Yuan
+#              Jonathan Jiang
+# Section:     218
+# Assignment:  L6 - Frodo Adventure
+# Date:        19 11 2026
+
 import classes as cls
 import numpy as np
 from pathlib import Path
@@ -45,7 +57,9 @@ class Level:
         map = []
 
         with open(filepath, "r") as file:
-            for r, line in enumerate(file):
+            r = -1
+            for line in file:
+                r += 1
                 row = []
                 line = line.split()
                 for c, space in enumerate(line): # tile_type? then we access the other more specific stuff later
