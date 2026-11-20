@@ -187,7 +187,7 @@ def main():
             return
             
         if spell_name in frodo.spell_slots:
-            frodo.spell_slots.remove(spell_name)
+            frodo.deletespell(spell_name)
             
             # Force equip the first available spell to prevent holding a deleted weapon
             frodo.equip_weapon(cls.Weapon(frodo.spell_slots[0]))

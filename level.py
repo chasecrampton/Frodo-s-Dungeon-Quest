@@ -59,6 +59,8 @@ class Level:
                         monster.position = np.array([r,c])
                         monster.type = monster.chooseRandomMonster()
                         self.monsters.append(monster)
+                        if monster.health <= 0:
+                            self.monsters.remove(monster)
                         row.append(cls.Floor())
                         continue
                     if space == "?":

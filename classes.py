@@ -248,7 +248,7 @@ class MagicScroll:
         
         if available_spells:
             new_spell = random.choice(available_spells)
-            player.spell_slots.append(new_spell)
+            player.addspell(new_spell)
             return f"Learned the {new_spell.capitalize()} spell!"
         else:
             # Fallback if they have all spells/this spell
@@ -360,6 +360,12 @@ class Player:
 
         self.position = new_pos
         return True
+    def addspell(self, new_spell):
+        """Team-written. Jonathan"""
+        self.spell_slots.append(new_spell)
+    def deletespell(self, spell_name):
+        """Team-written. Jonathan"""
+        self.spell_slots.remove(spell_name)
 
     def add_to_inventory(self, item: str):
         """Team-written. Jonathan Winfield
@@ -402,7 +408,7 @@ class Player:
         return self.weapon.attack(self, direction, level_map, monsters)
     
     def cast_spell(self, slot_index: int, direction, level_map: list[list[Any]], monsters: list) -> tuple[list, list]:
-        """AI-assisted. Casts a spell from the designated slot index."""
+        """AI-assisted. Casts a spell from the designated slot index. Jonathan"""
         if slot_index >= len(self.spell_slots):
             return [], []
             
