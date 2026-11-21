@@ -68,7 +68,7 @@ def next_level(curr_file: Path, curr_level: str, level_count:int, is_dev_mode: b
         else:
             match curr_level:
                 case "easy": next_level = random.choice(["easy", "medium"])
-                case "medium": next_level = random.choice(["easy", "medium", "hard"])
+                case "medium": next_level = random.choice(["medium", "hard"])
                 case "hard": next_level = random.choice(["hard", "boss"])
                 case "boss": next_level = "win"
                 case _: next_level = "win"
