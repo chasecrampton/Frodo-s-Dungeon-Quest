@@ -124,6 +124,7 @@ class Level:
 
         row, col = position
         self.map[row][col] = entity
+        
     def clear_spell_effects(self):
         """Team-written. Jonathan
         

@@ -1,8 +1,16 @@
 Monsters:
 (S): Stationary --> doesn't move but does damage when touched.
-(B): Bat --> moves on a predetermined path.
+(B): Bat --> moves on a predetermined path. 
 (F): Fairy --> moves randomly and is not fixated on the player.
 (H): Hound --> has two turns, moves towards the player
 (G): Goblin --> takes most direct path
 (Z): Zombie --> moves towards the player in a random direction
 (C): Coward --> runs from the player.
+
+Buffs:
+HealthPack --> heals 25 hit points.
+TotemOfUndying --> restores the player to full health.
+StrengthPotion --> increases the player's base damage by 5 permanently.
+Whetstone --> permanently increases the player's base damage by 3.
+MysteryBrew --> 50/50 chance of increasing health by 20 or dealing 15 points of damage.
+MagicScroll --> finds spells in the game that th eplayer doesn't have yet and unlocks a new spell slot.

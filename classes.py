@@ -338,7 +338,7 @@ class Player:
     position = np.array([0,0])
 
     def __init__(self) -> None:
-        """Team-written. Initiallizes a Player tile/character Jonathan"""
+        """Team-written. Initializes a Player tile/character Jonathan"""
         self.inventory = Inventory()
         self.weapon = Weapon('base')
         self.spell_slots = ["base"]
@@ -513,6 +513,7 @@ class Monster:
         if health_ratio >= 0.4:
             return Colors.yellow
         return Colors.red
+    
     def _is_move_blocked(self, new_pos: np.ndarray, level_map: list[list[Any]], monsters: list) -> bool:
         """Team-written. Aaron Yuan.
                 
@@ -547,7 +548,7 @@ class Monster:
             # Check player collision
             if np.array_equal(new_pos, player.position):
                 self.attack(player) 
-                return False # Attack the player and end movement turn. Returns fallse because attacked but didn't move
+                return False # Attack the player and end movement turn. Returns false because attacked but didn't move
             if self._is_move_blocked(new_pos, level_map, monsters):
                 return False
                 

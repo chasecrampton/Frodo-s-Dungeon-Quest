@@ -73,12 +73,13 @@ def next_level(curr_file: Path, curr_level: str, level_count:int, is_dev_mode: b
                 case "boss": next_level = "win"
                 case _: next_level = "win"
 
-        directory = directory / next_level
+        #connects next level with the directory using pathlib operator to point to that difficulty's subfolder
+        directory = directory / next_level 
         
         possible_levels = [f.name for f in directory.glob("*.txt") if f.is_file()]
         if possible_levels: # checks if has at least one file
             return directory / random.choice(possible_levels), next_level
-        return curr_file, curr_level
+        return curr_file, curr_level #only runs if possible_levels is empty which keeps the player on the curr_file and level.
 
 
 def main():
