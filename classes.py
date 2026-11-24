@@ -121,7 +121,7 @@ class Weapon:
 
     def __init__(self, weapon_type: str):
         """Team-written. Jonathan. Initializes the weapon with a staff type."""
-        self.update(weapon_type)
+        self.update(weapon_type) #creates a weapon and sets it to a variable
 
     def _normalize_direction(self, direction) -> np.ndarray:
         """AI-assisted. Converts a WASD string or coordinate offset into a NumPy [row, col] array."""
@@ -181,6 +181,7 @@ class Weapon:
         stats = self.STAFF_TYPES[staff]
         self.damage = stats['damage']
         self.type = stats['type']
+        #stats.get tries to get the first thing in the parenthesis and defaults to the second if it doesn't exist
         self.range = stats.get('range', 1)
         self.pierce = stats.get('pierce', False)
         self.spell_effect = stats.get('spell_effect', False)
@@ -191,6 +192,8 @@ class End:
 
     def __init__(self) -> None:
         """Team-written. Initializes the exit tile."""
+        #creates an exit tile.
+        #makes an exit tile
         pass
 
 class Obstacle:
@@ -198,6 +201,7 @@ class Obstacle:
 
     def __init__(self) -> None:
         """Team-written. Initializes an obstacle tile."""
+        #makes a barrier tile
         pass
 
 
@@ -339,9 +343,12 @@ class Player:
 
     def __init__(self) -> None:
         """Team-written. Initializes a Player tile/character Jonathan"""
+        #creates a player that has inventory that can hold items and staffs.
+        #automatically equips Frodo with a basic spell.
         self.inventory = Inventory()
         self.weapon = Weapon('base')
         self.spell_slots = ["base"]
+        #Records all actions for the .txt file containing game results
         self.action_log: list[str] = []
 
     def move(self, move_direction: np.ndarray, level_map: list[list[Any]], monsters: list["Monster"]) -> bool:
@@ -350,8 +357,8 @@ class Player:
         Moves the player in a direction. Returns True or False based on if the player was able to move.
         """
 
-        new_pos = self.position + np.array(move_direction)
-        new_r, new_c = int(new_pos[0]), int(new_pos[1])
+        new_pos = self.position + np.array(move_direction) #calculates the new position of Frodo by adding self.position with the move direction
+        new_r, new_c = int(new_pos[0]), int(new_pos[1]) #new_pos has two numbers in it (row index, column index)
 
         if new_r < 0 or new_r >= len(level_map) or new_c < 0 or new_c >= len(level_map[0]):
             return False # outside map boundary
@@ -359,25 +366,27 @@ class Player:
         target_tile = level_map[new_r][new_c]
         if isinstance(target_tile, Obstacle): # doesn't work if is a wall
             return False
-        for monster in monsters:
+        for monster in monsters: #ensures that Frodo doesn't coincide with a monster tile
             if np.array_equal(new_pos, monster.position):
                 monster.attack(self)
                 return False # Movement blocked; turn ends
         else:
             # User picking up items
             if getattr(target_tile, 'item_name', None):
-                self.add_to_inventory(target_tile.item_name)
+                self.add_to_inventory(target_tile.item_name) 
                 self.action_log.append(f"Picked up item: {target_tile.item_name}") # LOGGER
                 # Remove item from floor
-                level_map[new_r][new_c] = Floor()
+                level_map[new_r][new_c] = Floor() #replace where the item was with a floor tile
 
         self.position = new_pos
-        return True
+        return True #indicates successful move
+    
     def addspell(self, new_spell):
-        """Team-written. Jonathan"""
+        """Team-written. Adds new spell if spell is acquired. Jonathan"""
         self.spell_slots.append(new_spell)
+
     def deletespell(self, spell_name):
-        """Team-written. Jonathan"""
+        """Team-written. Removes spell from inventory is chosen to. Jonathan"""
         self.spell_slots.remove(spell_name)
 
     def add_to_inventory(self, item: str):
@@ -389,9 +398,11 @@ class Player:
     def use_item(self, item: str):
         """Team-written. Winfield Fleming
         
-        If the player has the item in the inventory, use it. Returns wehter the item was used or not.
+        If the player has the item in the inventory, use it. Returns whether the item was used or not.
         """
+        #prevents player from using a magic scroll is max spells are already learned
         return self.inventory.use_item(item, self)
+    
     def change_health(self, x: int):
         """Team-written. Jonathan Winfield
         
@@ -435,6 +446,7 @@ class Player:
         """Team-written. Chase
         
         Prints the players health."""
+        #never used or referenced
 
         print(self.health)
     
@@ -482,9 +494,10 @@ class Monster:
         self.health += h
     def chooseRandomMonster(self):
         """Team-written. Aaron Yuan. Randomly selects a type and configures its attributes."""
-        self.type = random.choice(list(self.MONSTER_STATS.keys()))
+        #takes all the monster types (keys) and puts it into a list where a random monster is chosen
+        self.type = random.choice(list(self.MONSTER_STATS.keys())) 
 
-        self.max_health = self.MONSTER_STATS[self.type]["health"]
+        self.max_health = self.MONSTER_STATS[self.type]["health"] #pulls health of the specific monster
         self.health = self.max_health
 
         if self.type == "hound": # hound moves twice
@@ -494,7 +507,7 @@ class Monster:
         
         if self.type == "bat":
             self.path = random.choice(self.BAT_PATHS)
-            self.path_index = 0
+            self.path_index = 0 #starts the movement at the first within the chosen path
         
         return self.type
     
@@ -502,7 +515,7 @@ class Monster:
     def display(self):
         """Team-written. Aaron Yuan. Returns a unique map character based on the monster's type."""
         if self.type in self.MONSTER_STATS:
-            return self.MONSTER_STATS[self.type]["display"]
+            return self.MONSTER_STATS[self.type]["display"] #pulls the display character depending on the monster
         return "M"
     @property
     def color(self):
@@ -517,15 +530,16 @@ class Monster:
     def _is_move_blocked(self, new_pos: np.ndarray, level_map: list[list[Any]], monsters: list) -> bool:
         """Team-written. Aaron Yuan.
                 
-        See if new position is a valid space to be moved onto"""
+        See if new position for the monster is a valid space to be moved onto"""
         new_r, new_c = int(new_pos[0]), int(new_pos[1])
-        # Check boundaries
+        # Check boundaries, if row or column index is less than or greater than
         if new_r < 0 or new_r >= len(level_map) or new_c < 0 or new_c >= len(level_map[0]):
             return True
-        # Check if is Floor
+        # Ensuring the next tile is floor
         if not isinstance(level_map[new_r][new_c], Floor):
             return True
-        # Check collision with another monster
+        #Check collision with another monster
+        #Checks the position of all the other monsters and rules out those spaces as available
         for other in monsters:
             if other is not self and np.array_equal(new_pos, other.position):
                 return True
@@ -536,7 +550,7 @@ class Monster:
         
         Moves based on player position, map, and type of monster"""
 
-        for step in range(self.speed):
+        for step in range(self.speed): #if self.speed is 2 (like for the hound). it will allow it to make two moves
             move_direction = self.getMove(player.position)
             
             # If the monster wants to stay still, skip processing
@@ -547,8 +561,8 @@ class Monster:
 
             # Check player collision
             if np.array_equal(new_pos, player.position):
-                self.attack(player) 
-                return False # Attack the player and end movement turn. Returns false because attacked but didn't move
+                self.attack(player) #if new monster position aligns with player position, the monster will attack the player
+                return False # Returns False because the monster doesn't move when it attacks
             if self._is_move_blocked(new_pos, level_map, monsters):
                 return False
                 
@@ -561,7 +575,7 @@ class Monster:
         """Team-written. Aaron Yuan.
         
         Decreases player health"""
-        player.change_health(-self.damage)
+        player.change_health(-self.damage) #self.damage is contained within monster stats
         player.action_log.append(f"Got hurt by a {self.type} monster for {self.damage} damage!") # LOGGER
         return
     
@@ -572,11 +586,12 @@ class Monster:
 
         match self.type:
             case "trap":
-                return np.array([0, 0])
+                return np.array([0, 0]) #traps stays in place at 0,0
                 
             case "bat":
                 # Cycle through the predefined path array
-                move = self.path[self.path_index % len(self.path)]
+                #if self.path_index == len(self.path), the modulo will reset back to 1st index
+                move = self.path[self.path_index % len(self.path)] 
                 self.path_index += 1
                 return move
                 
@@ -589,13 +604,16 @@ class Monster:
                 return random.choice(options) if options else np.array([0, 0])
                 
             case "fairy": 
+                #will renadomly execute one cardinal direction movement
                 return random.choice([
                     np.array([-1, 0]), np.array([0, -1]),
                     np.array([1, 0]), np.array([0, 1])
                 ])
                     
             case "goblin": 
+                #will calculate distance between itself and Frodo
                 a = player_position - self.position
+                #move based on what axis is more efficient
                 if abs(a[0]) >= abs(a[1]):
                     return np.array([int(np.sign(a[0])), 0]) 
                 return np.array([0, int(np.sign(a[1]))]) 
@@ -603,15 +621,19 @@ class Monster:
             case "zombie": 
                 a = player_position - self.position
                 options = []
+                #appends movement option to options list
                 if a[0] != 0: options.append(np.array([int(np.sign(a[0])), 0]))
                 if a[1] != 0: options.append(np.array([0, int(np.sign(a[1]))]))
                 return random.choice(options) if options else np.array([0, 0])
+           
             case "spider":
                 # Moves diagonally (and orthogonally when aligned) directly toward the player
                 a = player_position - self.position
                 return np.array([int(np.sign(a[0])), int(np.sign(a[1]))])
+            
             case "coward": 
                 a = self.position - player_position # Reversed vector
+                #takes on goblin logic with displacement reversed
                 if abs(a[0]) >= abs(a[1]) and a[0] != 0:
                     return np.array([int(np.sign(a[0])), 0])
                 elif a[1] != 0:
@@ -620,6 +642,7 @@ class Monster:
                     np.array([-1, 0]), np.array([0, -1]),
                     np.array([1, 0]), np.array([0, 1])
                 ])
+            
             case _: # if monster name didn't exist, default to stationary
                 return np.array([0,0])
 
@@ -648,5 +671,6 @@ class Loot(Floor):
     
     def __init__(self, item_name):
         """Team-written. Jonathan initializes a Loot tile"""
+        #creates a loot tile that the player can step on
         super().__init__()
         self.item_name = item_name

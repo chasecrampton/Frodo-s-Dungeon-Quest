@@ -78,7 +78,8 @@ def next_level(curr_file: Path, curr_level: str, level_count:int, is_dev_mode: b
         
         possible_levels = [f.name for f in directory.glob("*.txt") if f.is_file()]
         if possible_levels: # checks if has at least one file
-            return directory / random.choice(possible_levels), next_level
+            #return directory selects one level file name and returns a typle of what the next level difficulty and next level
+            return directory / random.choice(possible_levels), next_level 
         return curr_file, curr_level #only runs if possible_levels is empty which keeps the player on the curr_file and level.
 
 
@@ -150,8 +151,9 @@ def main():
         # Reset any pending spells and redraw
         nonlocal pending_spell
         pending_spell = None
+        #Clears the armed spell instruction and sets text to ready
         status_label.configure(text="Ready.")
-        refresh()
+        refresh() #resets UI
 
     def show_rules():
         """AI-assisted. Displays the game rules, controls, and combat mechanics."""
@@ -180,11 +182,11 @@ def main():
         """Team-written. Jonathan
         Enables or disables the dev mode based on the checkbox.
         Adds a skip button and infinite health"""
-        if dev_mode_var.get():
+        if dev_mode_var.get(): #If dev mode is activated, skip level button is set to normal to allow player to click
             skip_button.configure(state="normal")
             frodo.health = 999999
         else:
-            skip_button.configure(state="disabled")
+            skip_button.configure(state="disabled") #skip level button is disabled in normal mode
             frodo.health = 100  # Reset to default starting health
             
         refresh()

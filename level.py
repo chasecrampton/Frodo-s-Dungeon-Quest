@@ -39,8 +39,10 @@ class Level:
 
         Initializes the level class.
         """
+        #snures that player remains with same characteristics but number of monsters resets
         self.player = player
         self.monsters = []
+        #creates entire level from .read_level
         self.map = self.read_level(str(level_file))
         if isinstance(level_file, str):
             self.name = level_file
@@ -121,7 +123,7 @@ class Level:
 
         Changes the position of an entity.
         """
-
+        #not used
         row, col = position
         self.map[row][col] = entity
         
@@ -131,5 +133,6 @@ class Level:
         Clears all temporary spell effects from the floor."""
         for row in self.map:
             for tile in row:
+                #if it is a tile floor that has a effect symbol, it will clear it
                 if isinstance(tile, cls.Floor) and getattr(tile, 'hasEffect', False):
                     tile.spelled(False)
