@@ -129,7 +129,7 @@ def main():
     ttk.Label(dungeon, text="WASD to move  •  Esc to quit").grid(
         row=1, column=0, sticky="w", pady=(10, 0)
     )
-    status_label = ttk.Label(dungeon, text="Ready.", foreground="#f5cf67")
+    status_label = ttk.Label(dungeon, text="Ready.", foreground="#00d50b")
     status_label.grid(row=2, column=0, sticky="w", pady=(5, 0))
 
     pending_spell = None
